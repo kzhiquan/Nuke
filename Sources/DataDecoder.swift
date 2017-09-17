@@ -43,7 +43,19 @@ public struct DataDecoder: DataDecoding {
         // See also https://github.com/AFNetworking/AFNetworking/issues/2572
         return queue.sync {
             #if os(macOS)
-                return NSImage(data: data)
+                //return NSImage(data: data)
+                guard let cgImageSourceRef = CGImageSourceCreateWithData(data as CFData, nil) else {
+                    return nil
+                }
+                
+                guard let cgImageRef = CGImageSourceCreateImageAtIndex(cgImageSourceRef, 0, nil) else {
+                    return nil
+                }
+                
+                let size = CGSize(width: cgImageRef.width, height: cgImageRef.height)
+                let image = NSImage(cgImage: cgImageRef, size: size)
+                
+                return image
             #else
                 #if os(iOS) || os(tvOS)
                     let scale = UIScreen.main.scale
